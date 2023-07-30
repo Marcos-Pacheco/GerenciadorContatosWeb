@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ContactRequest;
+use App\Models\Contact;
 use App\Repositories\ContactRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 class ContactController extends Controller
 {   
@@ -26,7 +29,7 @@ class ContactController extends Controller
      */
     public function create()
     {
-        //
+        return view('form')->with('contact',null);
     }
 
     /**
@@ -35,9 +38,20 @@ class ContactController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ContactRequest $request)
     {
-        //
+        $contact = new Contact();
+        $contact->name = $request->name;
+        $contact->contact = $request->contact;
+        $contact->email = $request->email;
+
+        if (ContactRepository::create($contact)) {
+            Session::flash('status','saved');
+        } else {
+            Session::flash('status','error');
+        }
+
+        return redirect('contact');
     }
 
     /**
@@ -61,19 +75,33 @@ class ContactController extends Controller
      */
     public function edit($id)
     {
-        //
+        $contact = ContactRepository::findById($id);
+
+        return view('form')->with('contact',$contact);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  App\Http\Requests\ContactRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ContactRequest $request, $id)
     {
-        //
+        $contact = ContactRepository::findById($id);
+
+        $contact->name = $request->name;
+        $contact->contact = $request->contact;
+        $contact->email = $request->email;
+
+        if (ContactRepository::update($contact)) {
+            Session::flash('status','saved');
+        } else {
+            Session::flash('status','error');
+        }
+
+        return redirect('contact');
     }
 
     /**
@@ -84,6 +112,14 @@ class ContactController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $contact = ContactRepository::findById($id);
+
+        if (ContactRepository::delete($contact)) {
+            Session::flash('status','saved');
+        } else {
+            Session::flash('status','error');
+        }
+
+        return redirect('contact');
     }
 }
